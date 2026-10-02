@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm
+  namespace: library
+data:
+  library-realm.json: |
+    {
+      "realm": "library",
+      "enabled": true,
+      "clients": [
+        {
+          "clientId": "library-api",
+          "enabled": true,
+          "publicClient": true,
+          "directAccessGrantsEnabled": true,
+          "standardFlowEnabled": false
+        }
+      ],
+      "users": [
+        {
+          "username": "admin@library.local",
+          "firstName": "Admin",
+          "lastName": "Library",
+          "enabled": true,
+          "email": "admin@library.local",
+          "emailVerified": true,
+          "requiredActions": [],
+          "credentials": [
+            {
+              "type": "password",
+              "value": "admin",
+              "temporary": false
+            }
+          ]
+        }
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: library
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        image: quay.io/keycloak/keycloak:26.7
+        args: ["start-dev", "--http-port=8080", "--import-realm"]
+        env:
+        - name: KC_BOOTSTRAP_ADMIN_USERNAME
+          value: admin
+        - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+          value: admin
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: realm
+          mountPath: /opt/keycloak/data/import
+        readinessProbe:
+          httpGet:
+            path: /realms/library/.well-known/openid-configuration
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: realm
+        configMap:
+          name: keycloak-realm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: library
+spec:
+  selector:
+    app: keycloak
+  ports:
+  - port: 8080
+    targetPort: 8080

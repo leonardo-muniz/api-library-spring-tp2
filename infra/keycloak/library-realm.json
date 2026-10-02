@@ -1,0 +1,31 @@
+{
+  "realm": "library",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "library-api",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@library.local",
+      "firstName": "Admin",
+      "lastName": "Library",
+      "enabled": true,
+      "email": "admin@library.local",
+      "emailVerified": true,
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}
